@@ -1,0 +1,4 @@
+<resources>
+    <string name="access_token">pk.eyJ1IjoiZmFuMTQ3IiwiYSI6ImNsbTR6YnN5NjJwczAzY21uenBxN2ZicGgifQ.Gwc9Y90K5pszGsLtkmkPmQ</string>
+    <string name="mapbox_auth_flow_secret">sk.eyJ1IjoiZmFuMTQ3IiwiYSI6ImNsbTYwcDdhOTFqeXYza253aG83djN6Mm0ifQ.YTO0qxsMPQyL7XQsESp3yA</string>
+</resources>

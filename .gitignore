@@ -1,0 +1,12 @@
+.idea/
+*.iml
+/captures
+settings.gradle
+local.properties
+build
+.DS_Store
+.gradle/
+gradlew.bat
+*.properties
+src/main/res/
+MapboxAndroidDemo/google-services.json

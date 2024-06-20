@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp"
+    tools:context=".examples.location.LocationComponentActivity">
+
+    <com.mapbox.mapboxsdk.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        mapbox:mapbox_cameraBearing="20"
+        mapbox:mapbox_cameraTargetLat="41.86625"
+        mapbox:mapbox_cameraTargetLng="-87.61694"
+        mapbox:mapbox_cameraTilt="40"
+        mapbox:mapbox_cameraZoom="15.99">
+
+        <com.getbase.floatingactionbutton.FloatingActionsMenu
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:fab_expandDirection="down"
+            app:fab_labelStyle="@style/LabelStyle"
+            app:fab_labelsPosition="right">
+
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                android:id="@+id/floor1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:fab_colorNormal="#FFF"
+                app:fab_size="mini"
+                app:fab_title="楼层1" />
+
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                android:id="@+id/floor2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:fab_colorNormal="#FFF"
+                app:fab_size="mini"
+                app:fab_title="楼层2" />
+
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                android:id="@+id/floor3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:fab_colorNormal="#FFF"
+                app:fab_size="mini"
+                app:fab_title="楼层3" />
+
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                android:id="@+id/floor4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:fab_colorNormal="#FFF"
+                app:fab_size="mini"
+                app:fab_title="楼层4" />
+
+
+        </com.getbase.floatingactionbutton.FloatingActionsMenu>
+
+    </com.mapbox.mapboxsdk.maps.MapView>
+
+
+
+
+
+
+</RelativeLayout>

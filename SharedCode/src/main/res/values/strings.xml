@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mapbox_segment_wearable_write_key">pk.eyJ1IjoiZmFuMTQ3IiwiYSI6ImNsbTR6YnN5NjJwczAzY21uenBxN2ZicGgifQ.Gwc9Y90K5pszGsLtkmkPmQ</string>
+    <string name="mapbox_segment_write_key">pk.eyJ1IjoiZmFuMTQ3IiwiYSI6ImNsbTR6YnN5NjJwczAzY21uenBxN2ZicGgifQ.Gwc9Y90K5pszGsLtkmkPmQ</string>
+</resources>

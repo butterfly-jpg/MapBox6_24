@@ -1,0 +1,60 @@
+// Top-level build file which has configuration options common to all sub-projects/modules.
+buildscript {
+    ext.kotlin_version = '1.2.70'
+
+    apply from: "${rootDir}/gradle/dependencies.gradle"
+
+    repositories {
+        google()
+        jcenter()
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+
+    dependencies {
+        classpath pluginDependencies.gradle
+        classpath pluginDependencies.firebasePerformance
+        classpath pluginDependencies.kotlin
+        classpath pluginDependencies.fabric
+        classpath pluginDependencies.googleServices
+        classpath pluginDependencies.kotlinLint
+        classpath 'com.android.tools.build:gradle:3.6.0'
+
+
+
+    }
+}
+
+plugins {
+    id 'com.palantir.circle.style' version '1.1.2'
+    id 'com.github.triplet.play' version '2.0.0'
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+        maven { url "https://jitpack.io" }
+        maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
+        maven {
+            url 'https://api.mapbox.com/downloads/v2/releases/maven'
+            authentication {
+                basic(BasicAuthentication)
+            }
+            credentials {
+                username = "mapbox"
+                password = System.getenv("MAPBOX_DOWNLOADS_TOKEN") ?: project.property("MAPBOX_DOWNLOADS_TOKEN") as String
+            }
+        }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+subprojects {
+    // apply plugin: 'idea'
+    apply from: "${rootDir}/gradle/dependencies.gradle"
+}
+
