@@ -286,7 +286,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
           //绘制轨迹
           // 坐标点列表，这里是经纬度
           List<LatLng> points = new ArrayList<>();
-          points.add(new LatLng(y, x));
+          //points.add(new LatLng(y, x));
 
           drawPolyline(points);
 
