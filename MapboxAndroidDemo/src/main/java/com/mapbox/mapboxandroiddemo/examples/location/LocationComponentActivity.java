@@ -57,6 +57,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import timber.log.Timber;
 
+
 /**
  * Use the LocationComponent to easily add a device location "puck" to a Mapbox map.
  */
@@ -238,6 +239,11 @@ public class LocationComponentActivity extends AppCompatActivity implements
    */
   private static final String URL = "http://101.200.74.161/position/get/1"; // 服务器API地址
   JSONObject jsonObject = null;
+  private double MercatorX;//网站上的x坐标
+  private double MercatorY;//网站上的y坐标
+
+  private double pointX;//纬度
+  private double pointY;//经度
 
   /**
    * (1)解析JSON数据
@@ -269,25 +275,21 @@ public class LocationComponentActivity extends AppCompatActivity implements
           JSONObject data = jsonObject.getJSONObject("data");
 
 
-          double x = data.getDouble("x");
-          double y = data.getDouble("y");
+          MercatorX = data.getDouble("x");
+          MercatorY = data.getDouble("y");
 
-          System.out.println("x:" + x +"----" + "y:" + y);
+          System.out.println("墨卡托坐标为" + "MercatorX:" + MercatorX +"----" + "MercatorY:" + MercatorY);
+
+
+
 
           //绘制轨迹
           // 坐标点列表，这里是经纬度
           List<LatLng> points = new ArrayList<>();
-          points.add(new LatLng(x, y));
+          points.add(new LatLng(y, x));
 
           drawPolyline(points);
-          // 创建一个PolylineOptions对象用来配置轨迹线
 
-//          PolylineOptions polylineOptions = new PolylineOptions()
-//                  .addAll(points)
-//                  .color(Color.parseColor("#009688"))
-//                  .width(5);
-//
-//          mapboxMap.addPolyline(polylineOptions);
 
           // 在这里处理JSONObject，例如将数据传递给UI更新等
         } catch (IOException e) {
