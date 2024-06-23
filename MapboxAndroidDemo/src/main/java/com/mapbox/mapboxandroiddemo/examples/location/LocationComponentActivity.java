@@ -286,6 +286,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
           pointX = pointXY[0];
           pointY = pointXY[1];
 
+          System.out.println("经纬度坐标为" + "pointX:" + pointX +"----" + "pointY:" + pointY);
 
           //绘制轨迹
           // 坐标点列表，这里是经纬度
