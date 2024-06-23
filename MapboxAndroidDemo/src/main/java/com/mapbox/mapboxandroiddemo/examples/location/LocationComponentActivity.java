@@ -22,6 +22,7 @@ import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.mapboxandroiddemo.R;
 
+import com.mapbox.mapboxandroiddemo.utils.Mercator;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -245,6 +246,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
   private double pointX;//纬度
   private double pointY;//经度
 
+  double RefLat = 39.089751991900954;
   /**
    * (1)解析JSON数据
    * (2)获取坐标点
@@ -280,13 +282,15 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
           System.out.println("墨卡托坐标为" + "MercatorX:" + MercatorX +"----" + "MercatorY:" + MercatorY);
 
-
+          double[] pointXY = Mercator.mercator2LonLat(MercatorX, MercatorY, RefLat);
+          pointX = pointXY[0];
+          pointY = pointXY[1];
 
 
           //绘制轨迹
           // 坐标点列表，这里是经纬度
           List<LatLng> points = new ArrayList<>();
-          //points.add(new LatLng(y, x));
+          points.add(new LatLng(pointX, pointY));
 
           drawPolyline(points);
 

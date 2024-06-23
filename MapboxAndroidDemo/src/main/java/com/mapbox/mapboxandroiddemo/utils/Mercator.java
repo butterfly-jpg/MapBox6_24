@@ -6,7 +6,7 @@ public class Mercator {
 	/**
 	 * @param lon
 	 * @param lat
-	 * @return  ¾­Î³¶È×ªÄ«¿¨ÍÐ
+	 * @return  ï¿½ï¿½Î³ï¿½ï¿½×ªÄ«ï¿½ï¿½ï¿½ï¿½
 	 */
 	public static double[] Lonlat2Mercator(double lon,double lat, double RefLat) {
 		double[] m_return = new double[2];
@@ -29,7 +29,7 @@ public class Mercator {
 	/**
 	 * @param x
 	 * @param y
-	 * @return  Ä«¿¨ÍÐ×ªÎªWGS84×ø±êÏµ
+	 * @return  Ä«ï¿½ï¿½ï¿½ï¿½×ªÎªWGS84ï¿½ï¿½ï¿½ï¿½Ïµ
 	 */
 	public static double[] mercator2LonLat(double x, double y, double Reflat){
 		double[] wpt_return = new double[2];
@@ -49,7 +49,7 @@ public class Mercator {
 		N0 = F/Math.sqrt(1- Math.pow(D, 2) * Math.pow(sinreflat, 2));
 		temp = y/(N0 * cosreflat);
 		try {
-			//µü´ú¼ÆËã
+			//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 			double delta = 2;
 			final double maxDelta = 0.000001;
 			int count = 0;
