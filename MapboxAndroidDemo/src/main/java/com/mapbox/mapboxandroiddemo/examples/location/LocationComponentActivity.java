@@ -286,12 +286,14 @@ public class LocationComponentActivity extends AppCompatActivity implements
           pointX = pointXY[0];
           pointY = pointXY[1];
 
-          System.out.println("经纬度坐标为" + "pointX:" + pointX +"----" + "pointY:" + pointY);
+          System.out.println("经纬度坐标为" + "经度pointX:" + pointX +"----" + "纬度pointY:" + pointY);
 
+          //"x": 9942064,
+          //"y": 3709754.2,
           //绘制轨迹
           // 坐标点列表，这里是经纬度
           List<LatLng> points = new ArrayList<>();
-          points.add(new LatLng(pointX, pointY));
+          points.add(new LatLng(pointY, pointX));
 
           drawPolyline(points);
 
