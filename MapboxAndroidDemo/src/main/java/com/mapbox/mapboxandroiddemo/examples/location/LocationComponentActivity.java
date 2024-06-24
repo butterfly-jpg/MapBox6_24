@@ -24,6 +24,7 @@ import com.mapbox.mapboxandroiddemo.R;
 
 import com.mapbox.mapboxandroiddemo.utils.Mercator;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
@@ -209,11 +210,6 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
                 enableLocationComponent(style);
                 getJsonData();
-//                try {
-//                  getLocationComponent(style);
-//                } catch (Exception e) {
-//                  throw new RuntimeException(e);
-//                }
               }
             });
   }
@@ -238,7 +234,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
    * 所需变量
    * @param loadedMapStyle
    */
-  private static final String URL = "http://101.200.74.161/position/get/1"; // 服务器API地址
+  private static final String URL = "http: //101.200.74.161/position/get/1"; // 服务器API地址
   JSONObject jsonObject = null;
   private double MercatorX;//网站上的x坐标
   private double MercatorY;//网站上的y坐标
@@ -292,21 +288,31 @@ public class LocationComponentActivity extends AppCompatActivity implements
           //"y": 3709754.2,
           //绘制轨迹
           // 坐标点列表，这里是经纬度
-          List<LatLng> points = new ArrayList<>();
-          points.add(new LatLng(pointY, pointX));
 
-          drawPolyline(points);
+          runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              MarkerOptions markerOptions = new MarkerOptions()
+                      .position(new LatLng(pointY, pointX))
+                      .title("Live Position")
+                      .snippet("Real-time location from server");
+
+              mapboxMap.addMarker(markerOptions);
+
+            }
+          });
+//          List<LatLng> points = new ArrayList<>();
+//          //points.add(new LatLng(pointY, pointX));
+//          points.add(new LatLng(39, 116));
+//
+//          drawPolyline(points);
 
 
           // 在这里处理JSONObject，例如将数据传递给UI更新等
-        } catch (IOException e) {
+        } catch (IOException | JSONException e) {
           // 处理网络错误，例如连接失败、超时、服务器错误等
           e.printStackTrace();
           // 可以在这里通知用户网络错误
-        } catch (JSONException e) {
-          // 处理解析JSON错误，例如返回的不是有效的JSON格式
-          e.printStackTrace();
-          // 可以在这里记录日志或通知用户数据格式错误
         } finally {
           try {
             Thread.sleep(2000);
@@ -316,33 +322,6 @@ public class LocationComponentActivity extends AppCompatActivity implements
         }
       }
     }).start();
-
-
-  }
-
-  private void drawPolyline(List<LatLng> points){
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-          // 当前线程是UI线程，可以安全地进行UI操作
-          // 绘制轨迹的代码放在这里
-          PolylineOptions polylineOptions = new PolylineOptions()
-                  .addAll(points)
-                  .color(Color.BLUE)
-                  .width(10);
-          mapboxMap.addPolyline(polylineOptions);
-        } else {
-          // 当前线程不是UI线程，需要切换到UI线程
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-              // 在UI线程上执行绘制轨迹的代码
-            }
-          });
-        }
-      }
-    });
 
 
   }
