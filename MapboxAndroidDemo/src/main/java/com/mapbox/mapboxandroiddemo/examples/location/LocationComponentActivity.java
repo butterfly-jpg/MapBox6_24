@@ -124,40 +124,17 @@ public class LocationComponentActivity extends AppCompatActivity implements
     //setContentView(R.layout.activity_location_component);
     setContentView(R.layout.activity_indoor_3d_map);
 
-    floor1 = (FloatingActionButton)findViewById(R.id.floor1);
-    floor2 = (FloatingActionButton)findViewById(R.id.floor2);
-    floor3 = (FloatingActionButton)findViewById(R.id.floor3);
-    floor4 = (FloatingActionButton)findViewById(R.id.floor4);
+    floor1 = (FloatingActionButton) findViewById(R.id.floor1);
+    floor2 = (FloatingActionButton) findViewById(R.id.floor2);
+    floor3 = (FloatingActionButton) findViewById(R.id.floor3);
+    floor4 = (FloatingActionButton) findViewById(R.id.floor4);
 
     mapView = findViewById(R.id.mapView);
     mapView.onCreate(savedInstanceState);
-    mapView.getMapAsync(new OnMapReadyCallback() {
-      @Override
-      public void onMapReady(@NonNull MapboxMap mapboxMap) {
-        mapboxMap.setStyle(Style.OUTDOORS, new Style.OnStyleLoaded() {
-          @Override
-          public void onStyleLoaded(@NonNull Style style) {
+    mapView.getMapAsync(this);
 
-            initRouteCoordinates();
-
-            style.addSource(new GeoJsonSource("line-source",
-                    FeatureCollection.fromFeatures(new Feature[] {Feature.fromGeometry(
-                            LineString.fromLngLats(routeCoordinates)
-                    )})));
-
-
-            style.addLayer(new LineLayer("linelayer", "line-source").withProperties(
-                    PropertyFactory.lineDasharray(new Float[] {0.01f, 2f}),
-                    PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
-                    PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
-                    PropertyFactory.lineWidth(5f),
-                    PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
-            ));
-          }
-        });
-      }
-    });
   }
+
 
   private void initRouteCoordinates(){
     routeCoordinates = new ArrayList<>();
@@ -295,6 +272,22 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
         enableLocationComponent(style);
         //getJsonData();
+
+        initRouteCoordinates();
+
+        style.addSource(new GeoJsonSource("line-source",
+                FeatureCollection.fromFeatures(new Feature[] {Feature.fromGeometry(
+                        LineString.fromLngLats(routeCoordinates)
+                )})));
+
+
+        style.addLayer(new LineLayer("linelayer", "line-source").withProperties(
+                PropertyFactory.lineDasharray(new Float[] {0.01f, 2f}),
+                PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+                PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+                PropertyFactory.lineWidth(5f),
+                PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
+        ));
       }
 
     });
