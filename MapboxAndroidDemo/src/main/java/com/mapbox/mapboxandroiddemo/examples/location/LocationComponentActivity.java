@@ -26,6 +26,7 @@ import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxandroiddemo.R;
 
@@ -44,6 +45,9 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.FillExtrusionLayer;
+import com.mapbox.mapboxsdk.style.layers.LineLayer;
+import com.mapbox.mapboxsdk.style.layers.Property;
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
@@ -104,6 +108,8 @@ public class LocationComponentActivity extends AppCompatActivity implements
   private double pointY;//经度
 
   double RefLat = 39.089751991900954;
+
+  private List<Point> routeCoordinates;
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -125,8 +131,43 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
     mapView = findViewById(R.id.mapView);
     mapView.onCreate(savedInstanceState);
-    mapView.getMapAsync(this);
+    mapView.getMapAsync(new OnMapReadyCallback() {
+      @Override
+      public void onMapReady(@NonNull MapboxMap mapboxMap) {
+        mapboxMap.setStyle(Style.OUTDOORS, new Style.OnStyleLoaded() {
+          @Override
+          public void onStyleLoaded(@NonNull Style style) {
+
+            initRouteCoordinates();
+
+            style.addSource(new GeoJsonSource("line-source",
+                    FeatureCollection.fromFeatures(new Feature[] {Feature.fromGeometry(
+                            LineString.fromLngLats(routeCoordinates)
+                    )})));
+
+
+            style.addLayer(new LineLayer("linelayer", "line-source").withProperties(
+                    PropertyFactory.lineDasharray(new Float[] {0.01f, 2f}),
+                    PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
+                    PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
+                    PropertyFactory.lineWidth(5f),
+                    PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
+            ));
+          }
+        });
+      }
+    });
   }
+
+  private void initRouteCoordinates(){
+    routeCoordinates = new ArrayList<>();
+    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.96415041776255));
+    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.964139527111634));
+    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.96412591380726));
+    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.964109574204514));
+    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.964098683552194));
+  }
+
 
   @Override
   public void onMapReady(@NonNull final MapboxMap mapboxMap) {
