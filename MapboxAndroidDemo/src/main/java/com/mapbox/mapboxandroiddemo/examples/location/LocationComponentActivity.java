@@ -5,7 +5,11 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillExtrusionBas
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillExtrusionColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillExtrusionHeight;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillExtrusionOpacity;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
@@ -20,6 +24,9 @@ import android.widget.Toast;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.Point;
 import com.mapbox.mapboxandroiddemo.R;
 
 import com.mapbox.mapboxandroiddemo.utils.Mercator;
@@ -37,6 +44,7 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.FillExtrusionLayer;
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 
@@ -78,6 +86,10 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
   private String[] floors = {"floor1", "floor2", "floor3", "floor4"};
 
+  private static final String SOURCE_ID = "SOURCE_ID";
+  private static final String ICON_ID = "ICON_ID";
+  private static final String LAYER_ID = "LAYER_ID";
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -105,6 +117,28 @@ public class LocationComponentActivity extends AppCompatActivity implements
   @Override
   public void onMapReady(@NonNull final MapboxMap mapboxMap) {
     LocationComponentActivity.this.mapboxMap = mapboxMap;
+
+    ArrayList<Feature> symbolLayerIconFeatureList = new ArrayList<>();
+    symbolLayerIconFeatureList.add(Feature.fromGeometry(
+            Point.fromLngLat(116, 39)));
+
+    mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
+
+            .withImage(ICON_ID, BitmapFactory.decodeResource(LocationComponentActivity.this.getResources(), R.drawable.mapbox_marker_icon_default))
+            .withSource(new GeoJsonSource(SOURCE_ID,
+                    FeatureCollection.fromFeatures(symbolLayerIconFeatureList)))
+            .withLayer(new SymbolLayer(LAYER_ID, SOURCE_ID)
+                    .withProperties(
+                            iconImage(ICON_ID),
+                            iconAllowOverlap(true),
+                            iconIgnorePlacement(true)
+                    )
+            ), new Style.OnStyleLoaded() {
+      @Override
+      public void onStyleLoaded(@NonNull Style style) {
+
+      }
+    });
 
     mapboxMap.setStyle(Style.MAPBOX_STREETS,
             new Style.OnStyleLoaded() {
@@ -289,18 +323,18 @@ public class LocationComponentActivity extends AppCompatActivity implements
           //绘制轨迹
           // 坐标点列表，这里是经纬度
 
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-              MarkerOptions markerOptions = new MarkerOptions()
-                      .position(new LatLng(pointY, pointX))
-                      .title("Live Position")
-                      .snippet("Real-time location from server");
-
-              mapboxMap.addMarker(markerOptions);
-
-            }
-          });
+//          runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//              MarkerOptions markerOptions = new MarkerOptions()
+//                      .position(new LatLng(pointY, pointX))
+//                      .title("Live Position")
+//                      .snippet("Real-time location from server");
+//
+//              mapboxMap.addMarker(markerOptions);
+//
+//            }
+//          });
 //          List<LatLng> points = new ArrayList<>();
 //          //points.add(new LatLng(pointY, pointX));
 //          points.add(new LatLng(39, 116));
