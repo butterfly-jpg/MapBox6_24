@@ -43,6 +43,7 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.plugins.building.BuildingPlugin;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.FillExtrusionLayer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
@@ -357,12 +358,11 @@ public class LocationComponentActivity extends AppCompatActivity implements
                 PropertyFactory.lineWidth(5f),//设置线条宽度为5像素。
                 PropertyFactory.lineColor(Color.parseColor("#e55e5e"))//设置线条颜色为红色（#e55e5e）。
         ));
+
       }
 
     });
-
   }
-
 
   /**
    * (1)解析JSON数据
