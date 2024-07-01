@@ -170,7 +170,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
     ArrayList<Feature> symbolLayerIconFeatureList = new ArrayList<>();
     symbolLayerIconFeatureList.add(Feature.fromGeometry(
             //Point.fromLngLat(pointY, pointX)
-            Point.fromLngLat(116.35260254690593, 39.96247516951781)));
+            Point.fromLngLat(116.35260254690593, 39.962647000878395)));
 
     mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
             .withImage(ICON_ID, BitmapFactory.decodeResource(
@@ -188,46 +188,84 @@ public class LocationComponentActivity extends AppCompatActivity implements
       public void onStyleLoaded(@NonNull Style style) { //onStyleLoaded 方法在地图样式加载完成后执行。
 
         //科研楼按钮
+        try {
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("ky_floor_one", new URI("asset://kyf1.geojson"));
+          style.addSource(courseRouteGeoJson);
+        } catch (URISyntaxException exception) {
+          Timber.d(exception);
+        }
 
-
-
-
+        try {
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("ky_floor_nine", new URI("asset://kyf9.geojson"));
+          style.addSource(courseRouteGeoJson);
+        } catch (URISyntaxException exception) {
+          Timber.d(exception);
+        }
 
 
         //教四按钮
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "floor_one", new URI("asset://f1.json"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("floor_one", new URI("asset://f1.json"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
         }
 
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "floor_two", new URI("asset://f2.json"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("floor_two", new URI("asset://f2.json"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
         }
 
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "floor_three", new URI("asset://f3.json"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("floor_three", new URI("asset://f3.json"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
         }
 
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "floor_four", new URI("asset://f4.json"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("floor_four", new URI("asset://f4.json"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
         }
 
 
+        //科研楼切换楼层
+        kyFloor1.setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            for(String kyFloor : kyFloors){
+              style.removeLayer(kyFloor);
+            }
+            style.addLayer(new FillExtrusionLayer("kyFloor1", "ky_floor_one").withProperties(
+                    fillExtrusionColor(get("color")),
+                    fillExtrusionHeight(get("height")),
+                    fillExtrusionBase(get("base_height")),
+                    fillExtrusionOpacity(0.5f)
+            ));
+          }
+        });
+        kyFloor9.setOnClickListener(new View.OnClickListener() {
+          @Override
+          public void onClick(View view) {
+            for(String kyFloor : kyFloors){
+              style.removeLayer(kyFloor);
+            }
+            style.addLayer(new FillExtrusionLayer("kyFloor9", "ky_floor_nine").withProperties(
+                    fillExtrusionColor(get("color")),
+                    fillExtrusionHeight(get("height")),
+                    fillExtrusionBase(get("base_height")),
+                    fillExtrusionOpacity(0.5f)
+            ));
+          }
+        });
+
+
+
+        //教四切换楼层
         //一层点击切换
         floor1.setOnClickListener(new View.OnClickListener() {
 
@@ -356,7 +394,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
           MercatorX = data.getDouble("x");
           MercatorY = data.getDouble("y");
-          //double[] pointXYM = Mercator.Lonlat2Mercator(116.35260254690593, 39.96247516951781, RefLat);//
+          //double[] pointXYM = Mercator.Lonlat2Mercator(116.35260254690593, 39.962647000878395, RefLat);//
           System.out.println("墨卡托坐标为" + "MercatorX:" + MercatorX +"----" + "MercatorY:" + MercatorY);
           //System.out.println("墨卡托坐标为" + "MercatorX:" + pointXYM[0] +"----" + "MercatorY:" + pointXYM[1]);//
           double[] pointXY = Mercator.mercator2LonLat(MercatorX, MercatorY, RefLat);
