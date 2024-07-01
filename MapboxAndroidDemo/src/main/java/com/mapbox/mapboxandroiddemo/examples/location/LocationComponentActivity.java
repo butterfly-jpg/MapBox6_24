@@ -78,18 +78,27 @@ import timber.log.Timber;
 public class LocationComponentActivity extends AppCompatActivity implements
         OnMapReadyCallback, PermissionsListener {
 
+  //教四楼层切换按钮
   FloatingActionButton floor1;
   FloatingActionButton floor2;
   FloatingActionButton floor3;
   FloatingActionButton floor4;
+
+  //科研楼楼层切换按钮
+  FloatingActionButton kyFloor1;
+  FloatingActionButton kyFloor9;
+
 
   private PermissionsManager permissionsManager;
   private MapboxMap mapboxMap;
   private MapView mapView;
   private int count = 0;
 
+  //教四楼层遍历数组
   private String[] floors = {"floor1", "floor2", "floor3", "floor4"};
 
+  //科研楼楼层遍历数组
+  private String[] kyFloors = {"kyFloor1", "kyFloor9"};
   private static final String SOURCE_ID = "SOURCE_ID";
   private static final String ICON_ID = "ICON_ID";
   private static final String LAYER_ID = "LAYER_ID";
@@ -129,6 +138,9 @@ public class LocationComponentActivity extends AppCompatActivity implements
     floor3 = (FloatingActionButton) findViewById(R.id.floor3);
     floor4 = (FloatingActionButton) findViewById(R.id.floor4);
 
+    kyFloor1 = (FloatingActionButton) findViewById(R.id.kyFloor1);
+    kyFloor9 = (FloatingActionButton) findViewById(R.id.kyFloor9);
+
     mapView = findViewById(R.id.mapView);
     mapView.onCreate(savedInstanceState);
     mapView.getMapAsync(this);
@@ -138,11 +150,12 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
   private void initRouteCoordinates(){
     routeCoordinates = new ArrayList<>();
-    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.96415041776255));
-    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.964139527111634));
-    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.96412591380726));
-    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.964109574204514));
-    routeCoordinates.add(Point.fromLngLat(116.3589120499679,39.964098683552194));
+    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.962411085230826));
+    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.96257446559904));
+    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.962647000878395));
+    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.96272869104398));
+    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.96289664883064));
+    //System.out.println(Mercator.Lonlat2Mercator(116.3589120499679,39.96415041776255,RefLat));
   }
 
 
@@ -153,14 +166,15 @@ public class LocationComponentActivity extends AppCompatActivity implements
     //获取网页坐标，解析JSON，墨卡托坐标转经纬度
     getJsonData();
 
-    //画点
+    //画单个点
     ArrayList<Feature> symbolLayerIconFeatureList = new ArrayList<>();
     symbolLayerIconFeatureList.add(Feature.fromGeometry(
-            Point.fromLngLat(pointY, pointX)));
+            //Point.fromLngLat(pointY, pointX)
+            Point.fromLngLat(116.35260254690593, 39.96247516951781)));
 
     mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
-
-            .withImage(ICON_ID, BitmapFactory.decodeResource(LocationComponentActivity.this.getResources(), R.drawable.mapbox_marker_icon_default))
+            .withImage(ICON_ID, BitmapFactory.decodeResource(
+                    LocationComponentActivity.this.getResources(), R.drawable.mapbox_marker_icon_default))
             .withSource(new GeoJsonSource(SOURCE_ID,
                     FeatureCollection.fromFeatures(symbolLayerIconFeatureList)))
             .withLayer(new SymbolLayer(LAYER_ID, SOURCE_ID)
@@ -171,7 +185,16 @@ public class LocationComponentActivity extends AppCompatActivity implements
                     )
             ), new Style.OnStyleLoaded() {
       @Override
-      public void onStyleLoaded(@NonNull Style style) {
+      public void onStyleLoaded(@NonNull Style style) { //onStyleLoaded 方法在地图样式加载完成后执行。
+
+        //科研楼按钮
+
+
+
+
+
+
+        //教四按钮
         try {
           GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
                   "floor_one", new URI("asset://f1.json"));
@@ -272,50 +295,35 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
         enableLocationComponent(style);
         //getJsonData();
-
+        //初始化路线坐标列表，线轨迹点集合
         initRouteCoordinates();
-
+        //画轨迹线
+        /**
+         * 使用 routeCoordinates 列表创建 LineString 几何对象，然后将其封装成 Feature 对象。
+         * 创建 FeatureCollection 并添加之前创建的 Feature，这是为了将数据源添加到地图中。
+         * style.addSource(...) 添加一个GeoJSON数据源，名为 "line-source"，并使用之前创建的 FeatureCollection。
+         * style.addLayer(...) 添加一个线层，名为 "linelayer"，并关联到 "line-source" 数据源。
+         */
         style.addSource(new GeoJsonSource("line-source",
                 FeatureCollection.fromFeatures(new Feature[] {Feature.fromGeometry(
                         LineString.fromLngLats(routeCoordinates)
                 )})));
 
-
+        /**
+         * 设置线层的属性：
+         */
         style.addLayer(new LineLayer("linelayer", "line-source").withProperties(
-                PropertyFactory.lineDasharray(new Float[] {0.01f, 2f}),
-                PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
-                PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
-                PropertyFactory.lineWidth(5f),
-                PropertyFactory.lineColor(Color.parseColor("#e55e5e"))
+                PropertyFactory.lineDasharray(new Float[] {0.01f, 2f}),//定义线条为虚线，间隔为0.01和2个单位。
+                PropertyFactory.lineCap(Property.LINE_CAP_ROUND),//设置线端点为圆形。
+                PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),//设置线段连接处为圆角。
+                PropertyFactory.lineWidth(5f),//设置线条宽度为5像素。
+                PropertyFactory.lineColor(Color.parseColor("#e55e5e"))//设置线条颜色为红色（#e55e5e）。
         ));
       }
 
     });
 
-//    mapboxMap.setStyle(Style.MAPBOX_STREETS,
-//            new Style.OnStyleLoaded() {
-//              @Override
-//              public void onStyleLoaded(@NonNull Style style) {
-//              }
-//            });
-
   }
-
-//  private String urlPost = "http://101.200.74.161/update";
-//  private String urlGet = "http://101.200.74.161/get/1";  //一号终端为4，二号终端为7
-//  private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-//  private volatile boolean Startpost = true;
-//  private static final OkHttpClient client = new OkHttpClient();
-//  public static Response post(String url, String json) throws IOException {
-//    RequestBody body = RequestBody.create(JSON, json);
-//    Request request = new Request.Builder()
-//            .url(url)
-//            .post(body)
-//            .build();
-//    Response response = client.newCall(request).execute();
-//    return response;
-//  }
-
 
 
   /**
@@ -324,8 +332,6 @@ public class LocationComponentActivity extends AppCompatActivity implements
    * (3)在地图上绘制轨迹线
    *
    */
-
-
   private void getJsonData(){
     new Thread(new Runnable() {
       @Override
@@ -350,9 +356,9 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
           MercatorX = data.getDouble("x");
           MercatorY = data.getDouble("y");
-
+          //double[] pointXYM = Mercator.Lonlat2Mercator(116.35260254690593, 39.96247516951781, RefLat);//
           System.out.println("墨卡托坐标为" + "MercatorX:" + MercatorX +"----" + "MercatorY:" + MercatorY);
-
+          //System.out.println("墨卡托坐标为" + "MercatorX:" + pointXYM[0] +"----" + "MercatorY:" + pointXYM[1]);//
           double[] pointXY = Mercator.mercator2LonLat(MercatorX, MercatorY, RefLat);
           pointX = pointXY[0];
           pointY = pointXY[1];
@@ -408,7 +414,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
               LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
 
       // Enable to make component visible
-      locationComponent.setLocationComponentEnabled(true);
+      locationComponent.setLocationComponentEnabled(false);
 
       // Set the component's camera mode
       locationComponent.setCameraMode(CameraMode.TRACKING);

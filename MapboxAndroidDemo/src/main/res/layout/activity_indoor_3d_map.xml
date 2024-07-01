@@ -31,7 +31,7 @@
                 android:layout_height="wrap_content"
                 app:fab_colorNormal="#FFF"
                 app:fab_size="mini"
-                app:fab_title="楼层1" />
+                app:fab_title="教四1楼" />
 
             <com.getbase.floatingactionbutton.FloatingActionButton
                 android:id="@+id/floor2"
@@ -39,7 +39,7 @@
                 android:layout_height="wrap_content"
                 app:fab_colorNormal="#FFF"
                 app:fab_size="mini"
-                app:fab_title="楼层2" />
+                app:fab_title="教四2楼" />
 
             <com.getbase.floatingactionbutton.FloatingActionButton
                 android:id="@+id/floor3"
@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 app:fab_colorNormal="#FFF"
                 app:fab_size="mini"
-                app:fab_title="楼层3" />
+                app:fab_title="教四3楼" />
 
             <com.getbase.floatingactionbutton.FloatingActionButton
                 android:id="@+id/floor4"
@@ -55,8 +55,23 @@
                 android:layout_height="wrap_content"
                 app:fab_colorNormal="#FFF"
                 app:fab_size="mini"
-                app:fab_title="楼层4" />
+                app:fab_title="教四4楼" />
 
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                android:id="@+id/kyFloor1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:fab_colorNormal="#FFF"
+                app:fab_size="mini"
+                app:fab_title="科研1楼" />
+
+            <com.getbase.floatingactionbutton.FloatingActionButton
+                android:id="@+id/kyFloor9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:fab_colorNormal="#FFF"
+                app:fab_size="mini"
+                app:fab_title="科研9楼" />
 
         </com.getbase.floatingactionbutton.FloatingActionsMenu>
 
