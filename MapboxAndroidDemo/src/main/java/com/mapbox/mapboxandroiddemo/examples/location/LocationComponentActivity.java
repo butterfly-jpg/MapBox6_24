@@ -9,8 +9,10 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 
+import android.annotation.SuppressLint;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +24,11 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineCallback;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineRequest;
+import com.mapbox.android.core.location.LocationEngineResult;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
@@ -58,6 +65,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -78,6 +86,11 @@ import timber.log.Timber;
  */
 public class LocationComponentActivity extends AppCompatActivity implements
         OnMapReadyCallback, PermissionsListener {
+
+
+
+
+
 
   //教四楼层切换按钮
   FloatingActionButton floor1;
@@ -109,7 +122,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
    * 所需变量
    * @param loadedMapStyle
    */
-  private static final String URL = "http://101.200.74.161/position/get/1"; // 服务器API地址
+  private static final String URL = "http://101.200.74.161/position/get/50"; // 服务器API地址
   JSONObject jsonObject = null;
   private double MercatorX;//网站上的x坐标
   private double MercatorY;//网站上的y坐标
@@ -170,8 +183,8 @@ public class LocationComponentActivity extends AppCompatActivity implements
     //画单个点
     ArrayList<Feature> symbolLayerIconFeatureList = new ArrayList<>();
     symbolLayerIconFeatureList.add(Feature.fromGeometry(
-            //Point.fromLngLat(pointY, pointX)
-            Point.fromLngLat(116.35260254690593, 39.962647000878395)));
+            Point.fromLngLat(pointY, pointX)));
+            //Point.fromLngLat(116.35260254690593, 39.962647000878395)));
 
     mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
             .withImage(ICON_ID, BitmapFactory.decodeResource(
@@ -332,7 +345,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
           }
         });
 
-        enableLocationComponent(style);
+        //enableLocationComponent(style);
         //getJsonData();
         //初始化路线坐标列表，线轨迹点集合
         initRouteCoordinates();
@@ -402,31 +415,6 @@ public class LocationComponentActivity extends AppCompatActivity implements
           pointY = pointXY[1];
 
           System.out.println("经纬度坐标为" + "经度pointX:" + pointX +"----" + "纬度pointY:" + pointY);
-
-          //"x": 9942064,
-          //"y": 3709754.2,
-          //绘制轨迹
-          // 坐标点列表，这里是经纬度
-
-//          runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//              MarkerOptions markerOptions = new MarkerOptions()
-//                      .position(new LatLng(pointY, pointX))
-//                      .title("Live Position")
-//                      .snippet("Real-time location from server");
-//
-//              mapboxMap.addMarker(markerOptions);
-//
-//            }
-//          });
-//          List<LatLng> points = new ArrayList<>();
-//          //points.add(new LatLng(pointY, pointX));
-//          points.add(new LatLng(39, 116));
-//
-//          drawPolyline(points);
-
-
           // 在这里处理JSONObject，例如将数据传递给UI更新等
         } catch (IOException | JSONException e) {
           // 处理网络错误，例如连接失败、超时、服务器错误等
@@ -439,50 +427,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
   }
 
-  @SuppressWarnings( {"MissingPermission"})
-  private void enableLocationComponent(@NonNull Style loadedMapStyle){
-    // Check if permissions are enabled and if not request
-    if (PermissionsManager.areLocationPermissionsGranted(this)) {
-
-      // Get an instance of the component
-      LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
-      // Activate with options
-      locationComponent.activateLocationComponent(
-              LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
-
-      // Enable to make component visible
-      locationComponent.setLocationComponentEnabled(false);
-
-      // Set the component's camera mode
-      locationComponent.setCameraMode(CameraMode.TRACKING);
-
-      // Set the component's render mode
-      locationComponent.setRenderMode(RenderMode.COMPASS);
-
-//      OkHttpClient client = new OkHttpClient();
-//      Request request = new Request.Builder()
-//              .url(URL)
-//              .build();
-//      Response response = client.newCall(request).execute();
-//      String responseBody = response.body().string();
-//      jsonObject = new JSONObject(responseBody);
-
-    } else {
-      permissionsManager = new PermissionsManager(this);
-      permissionsManager.requestLocationPermissions(this);
-    }
-
-    //System.out.println(jsonObject.toString());
-  }
-
-
-
-
-
-
-
-    //JSONObject json = new JSONObject();
+  //JSONObject json = new JSONObject();
 //    while (true) {
 //      try {
 //        //获取室外的经纬度
@@ -549,23 +494,10 @@ public class LocationComponentActivity extends AppCompatActivity implements
   }
 
   @Override
-  public void onPermissionResult(boolean granted) {
-    if (granted) {
-      mapboxMap.getStyle(new Style.OnStyleLoaded() {
-        @Override
-        public void onStyleLoaded(@NonNull Style style) {
-          try {
-            enableLocationComponent(style);
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }
-      });
-    } else {
-      Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
-      finish();
-    }
+  public void onPermissionResult(boolean b) {
+
   }
+
 
   @Override
   @SuppressWarnings( {"MissingPermission"})

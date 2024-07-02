@@ -36,8 +36,8 @@ import androidx.appcompat.app.AppCompatActivity;
 public class LocationChangeListeningActivity extends AppCompatActivity implements
     OnMapReadyCallback, PermissionsListener {
 
-  private static final long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
-  private static final long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
+  private static final long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;//默认1000毫秒
+  private static final long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;//默认最大等待时间5000毫秒
   private MapboxMap mapboxMap;
   private MapView mapView;
   private PermissionsManager permissionsManager;
