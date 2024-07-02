@@ -9,10 +9,8 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 
-import android.annotation.SuppressLint;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.location.Location;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,11 +22,6 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.getbase.floatingactionbutton.FloatingActionButton;
-import com.mapbox.android.core.location.LocationEngine;
-import com.mapbox.android.core.location.LocationEngineCallback;
-import com.mapbox.android.core.location.LocationEngineProvider;
-import com.mapbox.android.core.location.LocationEngineRequest;
-import com.mapbox.android.core.location.LocationEngineResult;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
@@ -50,7 +43,6 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.plugins.building.BuildingPlugin;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.FillExtrusionLayer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
@@ -65,7 +57,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -86,11 +77,6 @@ import timber.log.Timber;
  */
 public class LocationComponentActivity extends AppCompatActivity implements
         OnMapReadyCallback, PermissionsListener {
-
-
-
-
-
 
   //教四楼层切换按钮
   FloatingActionButton floor1;
@@ -122,7 +108,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
    * 所需变量
    * @param loadedMapStyle
    */
-  private static final String URL = "http://101.200.74.161/position/get/50"; // 服务器API地址
+  private static final String URL = "http://101.200.74.161/position/get/1"; // 服务器API地址
   JSONObject jsonObject = null;
   private double MercatorX;//网站上的x坐标
   private double MercatorY;//网站上的y坐标
@@ -183,8 +169,8 @@ public class LocationComponentActivity extends AppCompatActivity implements
     //画单个点
     ArrayList<Feature> symbolLayerIconFeatureList = new ArrayList<>();
     symbolLayerIconFeatureList.add(Feature.fromGeometry(
-            Point.fromLngLat(pointY, pointX)));
-            //Point.fromLngLat(116.35260254690593, 39.962647000878395)));
+            //Point.fromLngLat(pointY, pointX)
+            Point.fromLngLat(116.35260254690593, 39.96247516951781)));
 
     mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
             .withImage(ICON_ID, BitmapFactory.decodeResource(
@@ -203,14 +189,15 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
         //科研楼按钮
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("ky_floor_one", new URI("asset://kyf1.geojson"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                  "ky_floor_one", new URI("asset://kyf1.geojson"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
         }
-
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("ky_floor_nine", new URI("asset://kyf9.geojson"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                  "ky_floor_nine", new URI("asset://kyf9.geojson"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
@@ -219,39 +206,43 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
         //教四按钮
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("floor_one", new URI("asset://f1.json"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                  "floor_one", new URI("asset://f1.json"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
         }
 
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("floor_two", new URI("asset://f2.json"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                  "floor_two", new URI("asset://f2.json"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
         }
 
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("floor_three", new URI("asset://f3.json"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                  "floor_three", new URI("asset://f3.json"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
         }
 
         try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource("floor_four", new URI("asset://f4.json"));
+          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                  "floor_four", new URI("asset://f4.json"));
           style.addSource(courseRouteGeoJson);
         } catch (URISyntaxException exception) {
           Timber.d(exception);
         }
 
-
-        //科研楼切换楼层
+        //科研楼楼层切换
         kyFloor1.setOnClickListener(new View.OnClickListener() {
+
           @Override
           public void onClick(View view) {
-            for(String kyFloor : kyFloors){
+            for (String kyFloor : kyFloors) {
               style.removeLayer(kyFloor);
             }
             style.addLayer(new FillExtrusionLayer("kyFloor1", "ky_floor_one").withProperties(
@@ -263,9 +254,10 @@ public class LocationComponentActivity extends AppCompatActivity implements
           }
         });
         kyFloor9.setOnClickListener(new View.OnClickListener() {
+
           @Override
           public void onClick(View view) {
-            for(String kyFloor : kyFloors){
+            for (String kyFloor : kyFloors) {
               style.removeLayer(kyFloor);
             }
             style.addLayer(new FillExtrusionLayer("kyFloor9", "ky_floor_nine").withProperties(
@@ -277,9 +269,6 @@ public class LocationComponentActivity extends AppCompatActivity implements
           }
         });
 
-
-
-        //教四切换楼层
         //一层点击切换
         floor1.setOnClickListener(new View.OnClickListener() {
 
@@ -345,7 +334,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
           }
         });
 
-        //enableLocationComponent(style);
+        enableLocationComponent(style);
         //getJsonData();
         //初始化路线坐标列表，线轨迹点集合
         initRouteCoordinates();
@@ -371,11 +360,12 @@ public class LocationComponentActivity extends AppCompatActivity implements
                 PropertyFactory.lineWidth(5f),//设置线条宽度为5像素。
                 PropertyFactory.lineColor(Color.parseColor("#e55e5e"))//设置线条颜色为红色（#e55e5e）。
         ));
-
       }
 
     });
+
   }
+
 
   /**
    * (1)解析JSON数据
@@ -407,7 +397,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
           MercatorX = data.getDouble("x");
           MercatorY = data.getDouble("y");
-          //double[] pointXYM = Mercator.Lonlat2Mercator(116.35260254690593, 39.962647000878395, RefLat);//
+          //double[] pointXYM = Mercator.Lonlat2Mercator(116.35260254690593, 39.96247516951781, RefLat);//
           System.out.println("墨卡托坐标为" + "MercatorX:" + MercatorX +"----" + "MercatorY:" + MercatorY);
           //System.out.println("墨卡托坐标为" + "MercatorX:" + pointXYM[0] +"----" + "MercatorY:" + pointXYM[1]);//
           double[] pointXY = Mercator.mercator2LonLat(MercatorX, MercatorY, RefLat);
@@ -415,6 +405,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
           pointY = pointXY[1];
 
           System.out.println("经纬度坐标为" + "经度pointX:" + pointX +"----" + "纬度pointY:" + pointY);
+
           // 在这里处理JSONObject，例如将数据传递给UI更新等
         } catch (IOException | JSONException e) {
           // 处理网络错误，例如连接失败、超时、服务器错误等
@@ -426,6 +417,49 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
 
   }
+
+  @SuppressWarnings( {"MissingPermission"})
+  private void enableLocationComponent(@NonNull Style loadedMapStyle){
+    // Check if permissions are enabled and if not request
+    if (PermissionsManager.areLocationPermissionsGranted(this)) {
+
+      // Get an instance of the component
+      LocationComponent locationComponent = mapboxMap.getLocationComponent();
+
+      // Activate with options
+      locationComponent.activateLocationComponent(
+              LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
+
+      // Enable to make component visible
+      locationComponent.setLocationComponentEnabled(false);
+
+      // Set the component's camera mode
+      locationComponent.setCameraMode(CameraMode.TRACKING);
+
+      // Set the component's render mode
+      locationComponent.setRenderMode(RenderMode.COMPASS);
+
+//      OkHttpClient client = new OkHttpClient();
+//      Request request = new Request.Builder()
+//              .url(URL)
+//              .build();
+//      Response response = client.newCall(request).execute();
+//      String responseBody = response.body().string();
+//      jsonObject = new JSONObject(responseBody);
+
+    } else {
+      permissionsManager = new PermissionsManager(this);
+      permissionsManager.requestLocationPermissions(this);
+    }
+
+    //System.out.println(jsonObject.toString());
+  }
+
+
+
+
+
+
 
   //JSONObject json = new JSONObject();
 //    while (true) {
@@ -494,10 +528,23 @@ public class LocationComponentActivity extends AppCompatActivity implements
   }
 
   @Override
-  public void onPermissionResult(boolean b) {
-
+  public void onPermissionResult(boolean granted) {
+    if (granted) {
+      mapboxMap.getStyle(new Style.OnStyleLoaded() {
+        @Override
+        public void onStyleLoaded(@NonNull Style style) {
+          try {
+            enableLocationComponent(style);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }
+      });
+    } else {
+      Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
+      finish();
+    }
   }
-
 
   @Override
   @SuppressWarnings( {"MissingPermission"})
