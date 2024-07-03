@@ -86,7 +86,7 @@ import timber.log.Timber;
  * Use the LocationComponent to easily add a device location "puck" to a Mapbox map.
  */
 public class LocationComponentActivity extends AppCompatActivity implements
-        OnMapReadyCallback, PermissionsListener {
+        OnMapReadyCallback {
 
   //教四楼层切换按钮
   FloatingActionButton floor1;
@@ -110,7 +110,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
   //科研楼楼层遍历数组
   private String[] kyFloors = {"kyFloor1", "kyFloor9"};
   private static final String SOURCE_ID = "SOURCE_ID";
-  private static final String ICON_ID = "ICON_ID";
+  private static final String ICON_ID = "R.drawable.mapbox_marker_icon_default";
   private static final String LAYER_ID = "LAYER_ID";
 
   /**
@@ -129,7 +129,10 @@ public class LocationComponentActivity extends AppCompatActivity implements
   double RefLat = 39.089751991900954;
 
 
-  ArrayList<Feature> symbolLayerIconFeatureList = new ArrayList<>();
+  private Handler handler;
+  private Runnable dataFetcherRunnable;
+  private ArrayList<Feature> symbolLayerIconFeatureList = new ArrayList<>();
+  private FeatureCollection featureCollection;
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -156,36 +159,26 @@ public class LocationComponentActivity extends AppCompatActivity implements
     mapView.onCreate(savedInstanceState);
     mapView.getMapAsync(this);
 
+    handler = new Handler(Looper.getMainLooper());
+
   }
-
-
 
 
   @Override
   public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-    LocationComponentActivity.this.mapboxMap = mapboxMap;
+    this.mapboxMap = mapboxMap;
 
-      getJsonData();
-      symbolLayerIconFeatureList.add(Feature.fromGeometry(
-              Point.fromLngLat(pointY, pointX)));
+//      getJsonData();
+//      symbolLayerIconFeatureList.add(Feature.fromGeometry(
+//              Point.fromLngLat(pointY, pointX)));
       //准确坐标——经度116.35260254690593, 纬度39.96247516951781
 
       mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
-              .withImage(ICON_ID, BitmapFactory.decodeResource(
-                      LocationComponentActivity.this.getResources(), R.drawable.mapbox_marker_icon_default))
-              .withSource(new GeoJsonSource(SOURCE_ID,
-                      FeatureCollection.fromFeatures(symbolLayerIconFeatureList)))
-              .withLayer(new SymbolLayer(LAYER_ID, SOURCE_ID)
-                      .withProperties(
-                              iconImage(ICON_ID),
-                              iconAllowOverlap(true),
-                              iconIgnorePlacement(true)
-                      )
-              ), new Style.OnStyleLoaded() {
+              , new Style.OnStyleLoaded() {
         @Override
         public void onStyleLoaded(@NonNull Style style) { //onStyleLoaded 方法在地图样式加载完成后执行。
 
-
+          //创建GeoJSON源
           //科研楼按钮
           try {
             GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
@@ -236,6 +229,61 @@ public class LocationComponentActivity extends AppCompatActivity implements
             Timber.d(exception);
           }
 
+          //创建GeoJSON源
+//          GeoJsonSource geoJsonSource =
+//                    new GeoJsonSource("SOURCE_ID");
+
+
+          //创建符号图层SymbolLayer
+//          SymbolLayer symbolLayer = new SymbolLayer("LAYER_ID", "SOURCE_ID");
+//          symbolLayer.withProperties(
+//                  iconImage("mapbox_marker_icon_default.png"),
+//                  iconAllowOverlap(true),
+//                  iconIgnorePlacement(true)
+//          );
+//          style.addLayer(symbolLayer);
+
+          //在dataFetcherRunnable中更新数据源
+          dataFetcherRunnable = new Runnable() {
+            @Override
+            public void run() {
+              //获取数据
+              getJsonData();
+              //更新地图上的点
+              symbolLayerIconFeatureList.add(Feature.fromGeometry(
+                      Point.fromLngLat(pointY, pointX)));
+              //featureCollection = FeatureCollection.fromFeatures(symbolLayerIconFeatureList);
+
+              mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
+                      .withImage(ICON_ID, BitmapFactory.decodeResource(
+                              LocationComponentActivity.this.getResources(), R.drawable.mapbox_marker_icon_default))
+                      .withSource(new GeoJsonSource(SOURCE_ID,
+                              FeatureCollection.fromFeatures(symbolLayerIconFeatureList)))
+                      .withLayer(new SymbolLayer(LAYER_ID, SOURCE_ID)
+                              .withProperties(
+                                      iconImage(ICON_ID),
+                                      iconAllowOverlap(true),
+                                      iconIgnorePlacement(true)
+                              )
+                      ),new Style.OnStyleLoaded() {
+                @Override
+                public void onStyleLoaded(@NonNull Style style) {
+//                  GeoJsonSource geoJsonSource = style.getSourceAs("SOURCE_ID");
+//                  if(geoJsonSource != null){
+//                    geoJsonSource.setGeoJson(featureCollection);
+//                  }
+                }
+              });
+
+              //每隔2秒重复执行
+              handler.postDelayed(this, 2000);
+            }
+          };
+          handler.post(dataFetcherRunnable);
+
+
+
+          //按钮的点击事件具体实现
           //科研楼楼层切换
           kyFloor1.setOnClickListener(new View.OnClickListener() {
 
@@ -333,7 +381,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
             }
           });
 
-          enableLocationComponent(style);
+          //enableLocationComponent(style);
 
         }
 
@@ -392,62 +440,62 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
   }
 
-  @SuppressWarnings( {"MissingPermission"})
-  private void enableLocationComponent(@NonNull Style loadedMapStyle){
-    // Check if permissions are enabled and if not request
-    if (PermissionsManager.areLocationPermissionsGranted(this)) {
-
-      // Get an instance of the component
-      LocationComponent locationComponent = mapboxMap.getLocationComponent();
-
-      // Activate with options
-      locationComponent.activateLocationComponent(
-              LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
-
-      // Enable to make component visible
-      locationComponent.setLocationComponentEnabled(false);
-
-      // Set the component's camera mode
-      locationComponent.setCameraMode(CameraMode.TRACKING);
-
-      // Set the component's render mode
-      locationComponent.setRenderMode(RenderMode.COMPASS);
-
-
-    } else {
-      permissionsManager = new PermissionsManager(this);
-      permissionsManager.requestLocationPermissions(this);
-    }
-  }
-
-  @Override
-  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-    permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-  }
-
-  @Override
-  public void onExplanationNeeded(List<String> permissionsToExplain) {
-    Toast.makeText(this, R.string.user_location_permission_explanation, Toast.LENGTH_LONG).show();
-  }
-
-  @Override
-  public void onPermissionResult(boolean granted) {
-    if (granted) {
-      mapboxMap.getStyle(new Style.OnStyleLoaded() {
-        @Override
-        public void onStyleLoaded(@NonNull Style style) {
-          try {
-            enableLocationComponent(style);
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }
-      });
-    } else {
-      Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
-      finish();
-    }
-  }
+//  @SuppressWarnings( {"MissingPermission"})
+//  private void enableLocationComponent(@NonNull Style loadedMapStyle){
+//    // Check if permissions are enabled and if not request
+//    if (PermissionsManager.areLocationPermissionsGranted(this)) {
+//
+//      // Get an instance of the component
+//      LocationComponent locationComponent = mapboxMap.getLocationComponent();
+//
+//      // Activate with options
+//      locationComponent.activateLocationComponent(
+//              LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
+//
+//      // Enable to make component visible
+//      locationComponent.setLocationComponentEnabled(false);
+//
+//      // Set the component's camera mode
+//      locationComponent.setCameraMode(CameraMode.TRACKING);
+//
+//      // Set the component's render mode
+//      locationComponent.setRenderMode(RenderMode.COMPASS);
+//
+//
+//    } else {
+//      permissionsManager = new PermissionsManager(this);
+//      permissionsManager.requestLocationPermissions(this);
+//    }
+//  }
+//
+//  @Override
+//  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//    permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//  }
+//
+//  @Override
+//  public void onExplanationNeeded(List<String> permissionsToExplain) {
+//    Toast.makeText(this, R.string.user_location_permission_explanation, Toast.LENGTH_LONG).show();
+//  }
+//
+//  @Override
+//  public void onPermissionResult(boolean granted) {
+//    if (granted) {
+//      mapboxMap.getStyle(new Style.OnStyleLoaded() {
+//        @Override
+//        public void onStyleLoaded(@NonNull Style style) {
+//          try {
+//            enableLocationComponent(style);
+//          } catch (Exception e) {
+//            throw new RuntimeException(e);
+//          }
+//        }
+//      });
+//    } else {
+//      Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
+//      finish();
+//    }
+//  }
 
   @Override
   @SuppressWarnings( {"MissingPermission"})
@@ -484,6 +532,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
   protected void onDestroy() {
     super.onDestroy();
     mapView.onDestroy();
+    handler.removeCallbacks(dataFetcherRunnable);
   }
 
   @Override
