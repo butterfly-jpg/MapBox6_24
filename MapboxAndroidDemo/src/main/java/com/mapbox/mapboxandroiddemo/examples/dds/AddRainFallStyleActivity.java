@@ -59,12 +59,16 @@ public class AddRainFallStyleActivity extends AppCompatActivity implements OnMap
     mapboxMap.setStyle(Style.LIGHT, new Style.OnStyleLoaded() {
       @Override
       public void onStyleLoaded(@NonNull Style style) {
+
+        //调用addRadarData方法来添加雷达数据到地图上。
         addRadarData(style);
+
+        //创建一个名为refreshGeoJsonRunnable的新Runnable对象，用于定期刷新地图上的GeoJSON数据。
         refreshGeoJsonRunnable = new RefreshGeoJsonRunnable();
         do {
           handler.postDelayed(refreshGeoJsonRunnable, 1000);
         }
-        while (index == 37);
+        while (index == 37);//在index等于37的情况下，持续执行循环，每1秒调用refreshGeoJsonRunnable来更新地图数据。
       }
     });
   }
@@ -72,7 +76,7 @@ public class AddRainFallStyleActivity extends AppCompatActivity implements OnMap
   private class RefreshGeoJsonRunnable implements Runnable {
     @Override
     public void run() {
-      layer.setFilter(eq((Expression.get("idx")), literal(index)));
+      layer.setFilter(eq((Expression.get("idx")), literal(index)));//设置图层的过滤器，根据"idx"属性值与index变量相等的条件显示数据。
       index++;
       if (index == 37) {
         index = 0;
@@ -82,11 +86,14 @@ public class AddRainFallStyleActivity extends AppCompatActivity implements OnMap
   }
 
   private void addRadarData(@NonNull Style loadedMapStyle) {
+    //创建一个VectorSource对象，它将从指定的URL获取数据，并用作地图上的数据源。
     VectorSource vectorSource = new VectorSource(
       ID_SOURCE,
       SOURCE_URL
     );
+    //将vectorSource添加到地图样式中作为数据源。
     loadedMapStyle.addSource(vectorSource);
+    //尝试从地图样式中获取一个特定ID的图层。
     layer = loadedMapStyle.getLayerAs(ID_LAYER);
     if (layer == null) {
       layer = new FillLayer(ID_LAYER, ID_SOURCE);

@@ -1,6 +1,12 @@
 package com.mapbox.mapboxandroiddemo.examples.location;
 
+import static com.mapbox.mapboxsdk.style.expressions.Expression.eq;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.interpolate;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
+import static com.mapbox.mapboxsdk.style.layers.Property.VISIBLE;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillExtrusionBase;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillExtrusionColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillExtrusionHeight;
@@ -15,6 +21,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
@@ -30,6 +37,7 @@ import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxandroiddemo.R;
 
+import com.mapbox.mapboxandroiddemo.examples.dds.AddRainFallStyleActivity;
 import com.mapbox.mapboxandroiddemo.utils.Mercator;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
@@ -45,11 +53,13 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.FillExtrusionLayer;
+import com.mapbox.mapboxsdk.style.layers.FillLayer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
 import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
+import com.mapbox.mapboxsdk.style.sources.VectorSource;
 
 
 import org.json.JSONArray;
@@ -103,12 +113,12 @@ public class LocationComponentActivity extends AppCompatActivity implements
   private static final String ICON_ID = "ICON_ID";
   private static final String LAYER_ID = "LAYER_ID";
 
-
   /**
    * 所需变量
    * @param loadedMapStyle
    */
-  private static final String URL = "http://101.200.74.161/position/get/1"; // 服务器API地址
+  private static final String URL = "http://101.200.74.161/position/get/50"; // 服务器API地址
+
   JSONObject jsonObject = null;
   private double MercatorX;//网站上的x坐标
   private double MercatorY;//网站上的y坐标
@@ -118,7 +128,8 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
   double RefLat = 39.089751991900954;
 
-  private List<Point> routeCoordinates;
+
+  ArrayList<Feature> symbolLayerIconFeatureList = new ArrayList<>();
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -148,224 +159,187 @@ public class LocationComponentActivity extends AppCompatActivity implements
   }
 
 
-  private void initRouteCoordinates(){
-    routeCoordinates = new ArrayList<>();
-    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.962411085230826));
-    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.96257446559904));
-    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.962647000878395));
-    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.96272869104398));
-    routeCoordinates.add(Point.fromLngLat(116.35260254690593,39.96289664883064));
-    //System.out.println(Mercator.Lonlat2Mercator(116.3589120499679,39.96415041776255,RefLat));
-  }
 
 
   @Override
   public void onMapReady(@NonNull final MapboxMap mapboxMap) {
     LocationComponentActivity.this.mapboxMap = mapboxMap;
 
-    //获取网页坐标，解析JSON，墨卡托坐标转经纬度
-    getJsonData();
+      getJsonData();
+      symbolLayerIconFeatureList.add(Feature.fromGeometry(
+              Point.fromLngLat(pointY, pointX)));
+      //准确坐标——经度116.35260254690593, 纬度39.96247516951781
 
-    //画单个点
-    ArrayList<Feature> symbolLayerIconFeatureList = new ArrayList<>();
-    symbolLayerIconFeatureList.add(Feature.fromGeometry(
-            //Point.fromLngLat(pointY, pointX)
-            Point.fromLngLat(116.35260254690593, 39.96247516951781)));
-
-    mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
-            .withImage(ICON_ID, BitmapFactory.decodeResource(
-                    LocationComponentActivity.this.getResources(), R.drawable.mapbox_marker_icon_default))
-            .withSource(new GeoJsonSource(SOURCE_ID,
-                    FeatureCollection.fromFeatures(symbolLayerIconFeatureList)))
-            .withLayer(new SymbolLayer(LAYER_ID, SOURCE_ID)
-                    .withProperties(
-                            iconImage(ICON_ID),
-                            iconAllowOverlap(true),
-                            iconIgnorePlacement(true)
-                    )
-            ), new Style.OnStyleLoaded() {
-      @Override
-      public void onStyleLoaded(@NonNull Style style) { //onStyleLoaded 方法在地图样式加载完成后执行。
-
-        //科研楼按钮
-        try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "ky_floor_one", new URI("asset://kyf1.geojson"));
-          style.addSource(courseRouteGeoJson);
-        } catch (URISyntaxException exception) {
-          Timber.d(exception);
-        }
-        try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "ky_floor_nine", new URI("asset://kyf9.geojson"));
-          style.addSource(courseRouteGeoJson);
-        } catch (URISyntaxException exception) {
-          Timber.d(exception);
-        }
+      mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
+              .withImage(ICON_ID, BitmapFactory.decodeResource(
+                      LocationComponentActivity.this.getResources(), R.drawable.mapbox_marker_icon_default))
+              .withSource(new GeoJsonSource(SOURCE_ID,
+                      FeatureCollection.fromFeatures(symbolLayerIconFeatureList)))
+              .withLayer(new SymbolLayer(LAYER_ID, SOURCE_ID)
+                      .withProperties(
+                              iconImage(ICON_ID),
+                              iconAllowOverlap(true),
+                              iconIgnorePlacement(true)
+                      )
+              ), new Style.OnStyleLoaded() {
+        @Override
+        public void onStyleLoaded(@NonNull Style style) { //onStyleLoaded 方法在地图样式加载完成后执行。
 
 
-        //教四按钮
-        try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "floor_one", new URI("asset://f1.json"));
-          style.addSource(courseRouteGeoJson);
-        } catch (URISyntaxException exception) {
-          Timber.d(exception);
-        }
-
-        try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "floor_two", new URI("asset://f2.json"));
-          style.addSource(courseRouteGeoJson);
-        } catch (URISyntaxException exception) {
-          Timber.d(exception);
-        }
-
-        try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "floor_three", new URI("asset://f3.json"));
-          style.addSource(courseRouteGeoJson);
-        } catch (URISyntaxException exception) {
-          Timber.d(exception);
-        }
-
-        try {
-          GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
-                  "floor_four", new URI("asset://f4.json"));
-          style.addSource(courseRouteGeoJson);
-        } catch (URISyntaxException exception) {
-          Timber.d(exception);
-        }
-
-        //科研楼楼层切换
-        kyFloor1.setOnClickListener(new View.OnClickListener() {
-
-          @Override
-          public void onClick(View view) {
-            for (String kyFloor : kyFloors) {
-              style.removeLayer(kyFloor);
-            }
-            style.addLayer(new FillExtrusionLayer("kyFloor1", "ky_floor_one").withProperties(
-                    fillExtrusionColor(get("color")),
-                    fillExtrusionHeight(get("height")),
-                    fillExtrusionBase(get("base_height")),
-                    fillExtrusionOpacity(0.5f)
-            ));
+          //科研楼按钮
+          try {
+            GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                    "ky_floor_one", new URI("asset://kyf1.geojson"));
+            style.addSource(courseRouteGeoJson);
+          } catch (URISyntaxException exception) {
+            Timber.d(exception);
           }
-        });
-        kyFloor9.setOnClickListener(new View.OnClickListener() {
-
-          @Override
-          public void onClick(View view) {
-            for (String kyFloor : kyFloors) {
-              style.removeLayer(kyFloor);
-            }
-            style.addLayer(new FillExtrusionLayer("kyFloor9", "ky_floor_nine").withProperties(
-                    fillExtrusionColor(get("color")),
-                    fillExtrusionHeight(get("height")),
-                    fillExtrusionBase(get("base_height")),
-                    fillExtrusionOpacity(0.5f)
-            ));
+          try {
+            GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                    "ky_floor_nine", new URI("asset://kyf9.geojson"));
+            style.addSource(courseRouteGeoJson);
+          } catch (URISyntaxException exception) {
+            Timber.d(exception);
           }
-        });
 
-        //一层点击切换
-        floor1.setOnClickListener(new View.OnClickListener() {
 
-          @Override
-          public void onClick(View view) {
-            for (String floor : floors) {
-              style.removeLayer(floor);
-            }
-            style.addLayer(new FillExtrusionLayer("floor1", "floor_one").withProperties(
-                    fillExtrusionColor(get("color")),
-                    fillExtrusionHeight(get("height")),
-                    fillExtrusionBase(get("base_height")),
-                    fillExtrusionOpacity(0.5f)
-            ));
+          //教四按钮
+          try {
+            GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                    "floor_one", new URI("asset://f1.json"));
+            style.addSource(courseRouteGeoJson);
+          } catch (URISyntaxException exception) {
+            Timber.d(exception);
           }
-        });
 
-        //二层点击切换
-        floor2.setOnClickListener(new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            for (String floor : floors) {
-              style.removeLayer(floor);
-            }
-            style.addLayer(new FillExtrusionLayer("floor2", "floor_two").withProperties(
-                    fillExtrusionColor(get("color")),
-                    fillExtrusionHeight(get("height")),
-                    fillExtrusionBase(get("base_height")),
-                    fillExtrusionOpacity(0.5f)
-            ));
+          try {
+            GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                    "floor_two", new URI("asset://f2.json"));
+            style.addSource(courseRouteGeoJson);
+          } catch (URISyntaxException exception) {
+            Timber.d(exception);
           }
-        });
 
-        //三层点击切换
-        floor3.setOnClickListener(new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            for (String floor : floors) {
-              style.removeLayer(floor);
-            }
-            style.addLayer(new FillExtrusionLayer("floor3", "floor_three").withProperties(
-                    fillExtrusionColor(get("color")),
-                    fillExtrusionHeight(get("height")),
-                    fillExtrusionBase(get("base_height")),
-                    fillExtrusionOpacity(0.5f)
-            ));
+          try {
+            GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                    "floor_three", new URI("asset://f3.json"));
+            style.addSource(courseRouteGeoJson);
+          } catch (URISyntaxException exception) {
+            Timber.d(exception);
           }
-        });
 
-        //四层点击切换
-        floor4.setOnClickListener(new View.OnClickListener() {
-          @Override
-          public void onClick(View view) {
-            for (String floor : floors) {
-              style.removeLayer(floor);
-            }
-            style.addLayer(new FillExtrusionLayer("floor4", "floor_four").withProperties(
-                    fillExtrusionColor(get("color")),
-                    fillExtrusionHeight(get("height")),
-                    fillExtrusionBase(get("base_height")),
-                    fillExtrusionOpacity(0.5f)
-            ));
+          try {
+            GeoJsonSource courseRouteGeoJson = new GeoJsonSource(
+                    "floor_four", new URI("asset://f4.json"));
+            style.addSource(courseRouteGeoJson);
+          } catch (URISyntaxException exception) {
+            Timber.d(exception);
           }
-        });
 
-        enableLocationComponent(style);
-        //getJsonData();
-        //初始化路线坐标列表，线轨迹点集合
-        initRouteCoordinates();
-        //画轨迹线
-        /**
-         * 使用 routeCoordinates 列表创建 LineString 几何对象，然后将其封装成 Feature 对象。
-         * 创建 FeatureCollection 并添加之前创建的 Feature，这是为了将数据源添加到地图中。
-         * style.addSource(...) 添加一个GeoJSON数据源，名为 "line-source"，并使用之前创建的 FeatureCollection。
-         * style.addLayer(...) 添加一个线层，名为 "linelayer"，并关联到 "line-source" 数据源。
-         */
-        style.addSource(new GeoJsonSource("line-source",
-                FeatureCollection.fromFeatures(new Feature[] {Feature.fromGeometry(
-                        LineString.fromLngLats(routeCoordinates)
-                )})));
+          //科研楼楼层切换
+          kyFloor1.setOnClickListener(new View.OnClickListener() {
 
-        /**
-         * 设置线层的属性：
-         */
-        style.addLayer(new LineLayer("linelayer", "line-source").withProperties(
-                PropertyFactory.lineDasharray(new Float[] {0.01f, 2f}),//定义线条为虚线，间隔为0.01和2个单位。
-                PropertyFactory.lineCap(Property.LINE_CAP_ROUND),//设置线端点为圆形。
-                PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),//设置线段连接处为圆角。
-                PropertyFactory.lineWidth(5f),//设置线条宽度为5像素。
-                PropertyFactory.lineColor(Color.parseColor("#e55e5e"))//设置线条颜色为红色（#e55e5e）。
-        ));
-      }
+            @Override
+            public void onClick(View view) {
+              for (String kyFloor : kyFloors) {
+                style.removeLayer(kyFloor);
+              }
+              style.addLayer(new FillExtrusionLayer("kyFloor1", "ky_floor_one").withProperties(
+                      fillExtrusionColor(get("color")),
+                      fillExtrusionHeight(get("height")),
+                      fillExtrusionBase(get("base_height")),
+                      fillExtrusionOpacity(0.5f)
+              ));
+            }
+          });
+          kyFloor9.setOnClickListener(new View.OnClickListener() {
 
-    });
+            @Override
+            public void onClick(View view) {
+              for (String kyFloor : kyFloors) {
+                style.removeLayer(kyFloor);
+              }
+              style.addLayer(new FillExtrusionLayer("kyFloor9", "ky_floor_nine").withProperties(
+                      fillExtrusionColor(get("color")),
+                      fillExtrusionHeight(get("height")),
+                      fillExtrusionBase(get("base_height")),
+                      fillExtrusionOpacity(0.5f)
+              ));
+            }
+          });
+
+          //一层点击切换
+          floor1.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+              for (String floor : floors) {
+                style.removeLayer(floor);
+              }
+              style.addLayer(new FillExtrusionLayer("floor1", "floor_one").withProperties(
+                      fillExtrusionColor(get("color")),
+                      fillExtrusionHeight(get("height")),
+                      fillExtrusionBase(get("base_height")),
+                      fillExtrusionOpacity(0.5f)
+              ));
+            }
+          });
+
+          //二层点击切换
+          floor2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+              for (String floor : floors) {
+                style.removeLayer(floor);
+              }
+              style.addLayer(new FillExtrusionLayer("floor2", "floor_two").withProperties(
+                      fillExtrusionColor(get("color")),
+                      fillExtrusionHeight(get("height")),
+                      fillExtrusionBase(get("base_height")),
+                      fillExtrusionOpacity(0.5f)
+              ));
+            }
+          });
+
+          //三层点击切换
+          floor3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+              for (String floor : floors) {
+                style.removeLayer(floor);
+              }
+              style.addLayer(new FillExtrusionLayer("floor3", "floor_three").withProperties(
+                      fillExtrusionColor(get("color")),
+                      fillExtrusionHeight(get("height")),
+                      fillExtrusionBase(get("base_height")),
+                      fillExtrusionOpacity(0.5f)
+              ));
+            }
+          });
+
+          //四层点击切换
+          floor4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+              for (String floor : floors) {
+                style.removeLayer(floor);
+              }
+              style.addLayer(new FillExtrusionLayer("floor4", "floor_four").withProperties(
+                      fillExtrusionColor(get("color")),
+                      fillExtrusionHeight(get("height")),
+                      fillExtrusionBase(get("base_height")),
+                      fillExtrusionOpacity(0.5f)
+              ));
+            }
+          });
+
+          enableLocationComponent(style);
+
+        }
+
+      });
 
   }
-
 
   /**
    * (1)解析JSON数据
@@ -439,83 +413,12 @@ public class LocationComponentActivity extends AppCompatActivity implements
       // Set the component's render mode
       locationComponent.setRenderMode(RenderMode.COMPASS);
 
-//      OkHttpClient client = new OkHttpClient();
-//      Request request = new Request.Builder()
-//              .url(URL)
-//              .build();
-//      Response response = client.newCall(request).execute();
-//      String responseBody = response.body().string();
-//      jsonObject = new JSONObject(responseBody);
 
     } else {
       permissionsManager = new PermissionsManager(this);
       permissionsManager.requestLocationPermissions(this);
     }
-
-    //System.out.println(jsonObject.toString());
   }
-
-
-
-
-
-
-
-  //JSONObject json = new JSONObject();
-//    while (true) {
-//      try {
-//        //获取室外的经纬度
-//        //获取数据包
-//        PackageInfo packageInfo;
-//        packageInfo = DataBuffer.obtainPackageInfo();
-//
-//        //获取时间戳
-//        Date d = new Date();
-//        String dateString = "";
-//        SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd/hh/mm/ss/SSS");
-//        dateString = formatter.format(d);
-////                Log.d(TAG, dateString);
-////                double[] endxy = {m.sqlX , m.sqlY };
-////                double[] tempxy = GetEndPointByTrigonometric.getEndPointByTrigonometric(endxy);
-//
-//        //39.961895, 116.356236
-//        if (Startpost) {
-//          json.put("type", "@JHCOORD");
-//          json.put("time", dateString);
-////                    json.put("deviceID", position.getAutoinfo());
-//          json.put("deviceID", 0);
-//
-//          json.put("dimension", 3);
-//          json.put("mapID", 0);
-////                    json.put("mapID",packageInfo.getBuildIdString());
-//
-//          json.put("x", packageInfo.getMercatorX());
-////                    json.put("x",39.961895 );
-//          json.put("y", packageInfo.getMercatorY());
-////                    json.put("y", 116.356236);
-//          json.put("z", 0);
-////                    json.put("floor", packageInfo.getFloor());
-//          json.put("floor", packageInfo.getFloor());
-//          json.put("userID", 1);
-//
-//          post(urlPost, String.valueOf(json));
-//          //Log.d("step_length", "" + step_length);
-//
-//          Thread.sleep(1500);
-//        }
-//
-////        Response response = get(urlGet);
-////        String responseData = response.body().string();
-//////                Log.d(TAG, responseData);
-////
-////        user = parseJSONWithGSONObject(responseData);
-//        } catch (Exception e) {
-////        Log.d(TAG, "出错1");
-//      }
-//    }
-
-
-
 
   @Override
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
