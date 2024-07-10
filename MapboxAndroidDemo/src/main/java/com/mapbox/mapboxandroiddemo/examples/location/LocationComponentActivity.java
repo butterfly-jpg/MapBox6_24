@@ -98,8 +98,6 @@ public class LocationComponentActivity extends AppCompatActivity implements
   FloatingActionButton kyFloor1;
   FloatingActionButton kyFloor9;
 
-
-  private PermissionsManager permissionsManager;
   private MapboxMap mapboxMap;
   private MapView mapView;
   private int count = 0;
@@ -117,7 +115,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
    * 所需变量
    * @param loadedMapStyle
    */
-  private static final String URL = "http://101.200.74.161/position/get/50"; // 服务器API地址
+  private static final String URL = "http://101.200.74.161/position/get/1"; // 服务器API地址
 
   JSONObject jsonObject = null;
   private double MercatorX;//网站上的x坐标
@@ -125,6 +123,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
   private double pointX;//纬度
   private double pointY;//经度
+  private int floor;//楼层
 
   double RefLat = 39.089751991900954;
 
@@ -168,9 +167,6 @@ public class LocationComponentActivity extends AppCompatActivity implements
   public void onMapReady(@NonNull final MapboxMap mapboxMap) {
     this.mapboxMap = mapboxMap;
 
-//      getJsonData();
-//      symbolLayerIconFeatureList.add(Feature.fromGeometry(
-//              Point.fromLngLat(pointY, pointX)));
       //准确坐标——经度116.35260254690593, 纬度39.96247516951781
 
       mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
@@ -229,19 +225,6 @@ public class LocationComponentActivity extends AppCompatActivity implements
             Timber.d(exception);
           }
 
-          //创建GeoJSON源
-//          GeoJsonSource geoJsonSource =
-//                    new GeoJsonSource("SOURCE_ID");
-
-
-          //创建符号图层SymbolLayer
-//          SymbolLayer symbolLayer = new SymbolLayer("LAYER_ID", "SOURCE_ID");
-//          symbolLayer.withProperties(
-//                  iconImage("mapbox_marker_icon_default.png"),
-//                  iconAllowOverlap(true),
-//                  iconIgnorePlacement(true)
-//          );
-//          style.addLayer(symbolLayer);
 
           //在dataFetcherRunnable中更新数据源
           dataFetcherRunnable = new Runnable() {
@@ -249,9 +232,10 @@ public class LocationComponentActivity extends AppCompatActivity implements
             public void run() {
               //获取数据
               getJsonData();
+
               //更新地图上的点
               symbolLayerIconFeatureList.add(Feature.fromGeometry(
-                      Point.fromLngLat(pointY, pointX)));
+                      Point.fromLngLat(pointY, pointX, 28.4)));
               //featureCollection = FeatureCollection.fromFeatures(symbolLayerIconFeatureList);
 
               mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/mapbox/cjf4m44iw0uza2spb3q0a7s41")
@@ -268,20 +252,15 @@ public class LocationComponentActivity extends AppCompatActivity implements
                       ),new Style.OnStyleLoaded() {
                 @Override
                 public void onStyleLoaded(@NonNull Style style) {
-//                  GeoJsonSource geoJsonSource = style.getSourceAs("SOURCE_ID");
-//                  if(geoJsonSource != null){
-//                    geoJsonSource.setGeoJson(featureCollection);
-//                  }
+
                 }
               });
 
               //每隔2秒重复执行
-              handler.postDelayed(this, 2000);
+              handler.postDelayed(this, 200);
             }
           };
           handler.post(dataFetcherRunnable);
-
-
 
           //按钮的点击事件具体实现
           //科研楼楼层切换
@@ -416,18 +395,21 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
           JSONObject data = jsonObject.getJSONObject("data");
 
+          if(data.getDouble("x") != 0) {
+            MercatorX = data.getDouble("x");
+            MercatorY = data.getDouble("y");
+            floor = data.getInt("floor");
 
-          MercatorX = data.getDouble("x");
-          MercatorY = data.getDouble("y");
-          //double[] pointXYM = Mercator.Lonlat2Mercator(116.35260254690593, 39.96247516951781, RefLat);//
-          System.out.println("墨卡托坐标为" + "MercatorX:" + MercatorX +"----" + "MercatorY:" + MercatorY);
-          //System.out.println("墨卡托坐标为" + "MercatorX:" + pointXYM[0] +"----" + "MercatorY:" + pointXYM[1]);//
-          double[] pointXY = Mercator.mercator2LonLat(MercatorX, MercatorY, RefLat);
-          pointX = pointXY[0];
-          pointY = pointXY[1];
+            //double[] pointXYM = Mercator.Lonlat2Mercator(116.35260254690593, 39.96247516951781, RefLat);//
+            System.out.println("墨卡托坐标为" + "MercatorX:" + MercatorX + "----" + "MercatorY:" + MercatorY);
+            //System.out.println("墨卡托坐标为" + "MercatorX:" + pointXYM[0] +"----" + "MercatorY:" + pointXYM[1]);//
+            double[] pointXY = Mercator.mercator2LonLat(MercatorX, MercatorY, RefLat);
+            pointX = pointXY[0];
+            pointY = pointXY[1];
 
-          System.out.println("经纬度坐标为" + "经度pointX:" + pointX +"----" + "纬度pointY:" + pointY);
 
+            System.out.println("经纬度坐标为" + "经度pointX:" + pointX + "----" + "纬度pointY:" + pointY + "当前楼层:" + floor);
+          }
           // 在这里处理JSONObject，例如将数据传递给UI更新等
         } catch (IOException | JSONException e) {
           // 处理网络错误，例如连接失败、超时、服务器错误等
@@ -440,62 +422,7 @@ public class LocationComponentActivity extends AppCompatActivity implements
 
   }
 
-//  @SuppressWarnings( {"MissingPermission"})
-//  private void enableLocationComponent(@NonNull Style loadedMapStyle){
-//    // Check if permissions are enabled and if not request
-//    if (PermissionsManager.areLocationPermissionsGranted(this)) {
-//
-//      // Get an instance of the component
-//      LocationComponent locationComponent = mapboxMap.getLocationComponent();
-//
-//      // Activate with options
-//      locationComponent.activateLocationComponent(
-//              LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
-//
-//      // Enable to make component visible
-//      locationComponent.setLocationComponentEnabled(false);
-//
-//      // Set the component's camera mode
-//      locationComponent.setCameraMode(CameraMode.TRACKING);
-//
-//      // Set the component's render mode
-//      locationComponent.setRenderMode(RenderMode.COMPASS);
-//
-//
-//    } else {
-//      permissionsManager = new PermissionsManager(this);
-//      permissionsManager.requestLocationPermissions(this);
-//    }
-//  }
-//
-//  @Override
-//  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//    permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//  }
-//
-//  @Override
-//  public void onExplanationNeeded(List<String> permissionsToExplain) {
-//    Toast.makeText(this, R.string.user_location_permission_explanation, Toast.LENGTH_LONG).show();
-//  }
-//
-//  @Override
-//  public void onPermissionResult(boolean granted) {
-//    if (granted) {
-//      mapboxMap.getStyle(new Style.OnStyleLoaded() {
-//        @Override
-//        public void onStyleLoaded(@NonNull Style style) {
-//          try {
-//            enableLocationComponent(style);
-//          } catch (Exception e) {
-//            throw new RuntimeException(e);
-//          }
-//        }
-//      });
-//    } else {
-//      Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
-//      finish();
-//    }
-//  }
+
 
   @Override
   @SuppressWarnings( {"MissingPermission"})
